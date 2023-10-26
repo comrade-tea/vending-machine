@@ -8,7 +8,7 @@ interface IButtonStep {
 export const ButtonStep: FC<IButtonStep> = ({children, clickHandler}) => {
    return (
       <button onClick={clickHandler}
-              className="flex-shrink-0 basis-[40px] flex justify-center items-center px-2 bg-black text-white transition-colors hover:bg-gray-700">
+              className="flex-shrink-0 basis-[40px] flex justify-center items-center px-2 bg-blackd border-white border text-white transition-colors hover:bg-gray-700">
          {children}
       </button>
    )

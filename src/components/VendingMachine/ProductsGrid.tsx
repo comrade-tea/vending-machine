@@ -1,39 +1,33 @@
 import {useContext} from "react";
-import {useProducts} from "@/hooks/useProducts.ts";
 import {ProductItem} from "@/components/VendingMachine/ProductItem.tsx";
-import {MachineContext} from "@/context/MachineContext.tsx";
+import {VendorContext} from "@/context/VendorContext.tsx";
 
 export const ProductsGrid = () => {
-   const {products, loading} = useProducts()
-   const {currentProduct, selectProduct, productAmount} = useContext(MachineContext);
+    const {currentProduct, selectProduct, productAmount, products, productsLoading} = useContext(VendorContext);
 
-   if (loading)
-      return <div>Loading..</div>
+    if (productsLoading)
+        return <div>Loading..</div>
 
-   if (!loading && products?.length === 0)
-      return <div>There are no products</div>
-   
+    if (!productsLoading && products?.length === 0)
+        return <div>There are no products</div>
+    
 
-   return (
-      <>
-         {/*<button className="border border-green-400" onClick={() => decrementItem(products[1])}>descrement</button>*/}
-
-         <ul className="grid grid-cols-3 gap-4">
+    return (
+        <ul className="grid gap-4 grid-cols-2 sm:grid-cols-3">
             {products.map(product => {
-                  const isSelected = product.id === currentProduct?.id;
+                    const isSelected = product.id === currentProduct?.id;
 
-                  return (
-                     <li className="flex" key={product.id}>
-                        <ProductItem product={product}
-                                     selected={isSelected}
-                                     productAmount={productAmount}
-                                     handleSelect={selectProduct}
-                        />
-                     </li>
-                  );
-               }
+                    return (
+                        <li className="flex" key={product.id}>
+                            <ProductItem product={product}
+                                         selected={isSelected}
+                                         productAmount={productAmount}
+                                         handleSelect={selectProduct}
+                            />
+                        </li>
+                    );
+                }
             )}
-         </ul>
-      </>
-   )
+        </ul>
+    )
 }

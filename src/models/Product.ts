@@ -3,4 +3,5 @@ export interface IProduct {
    name: string
    amount: number
    price: number
+   priceView: string
 }
