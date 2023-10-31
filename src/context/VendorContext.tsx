@@ -1,10 +1,12 @@
-import React, {createContext, useEffect, useState} from "react";
-import {IProduct} from "../models/Product.ts";
-import {PurchaseStatus} from "../models/PurchaseStatus.ts";
-import {Currency, IDenomination, TInsertedMoney} from "../models/Currency.ts";
-import {useProducts} from "@/hooks/useProducts.ts";
-import {ChangeCalculator} from "@/calculator/ChangeCalculator";
+import React, {createContext, useCallback, useEffect, useMemo, useState} from 'react'
 
+import {ChangeCalculator} from '@/calculator/ChangeCalculator'
+import {useProducts} from '@/hooks/useProducts.ts'
+
+import type {IDenomination, TInsertedMoney} from '../models/Currency.ts';
+import {Currency} from '../models/Currency.ts'
+import type {IProduct} from '../models/Product.ts'
+import {PurchaseStatus} from '../models/PurchaseStatus.ts'
 
 interface IVendorContext {
     purchaseStatus: PurchaseStatus
@@ -38,135 +40,135 @@ const initialData: IVendorContext = {
     productAmount: 1,
     insertedMoney: {
         total: 0,
-        denominations: new Map()
+        denominations: new Map(),
     },
     due: 0,
     change: [],
     isPaymentFailed: false,
 
-    processPayment: function (): PurchaseStatus {
-        throw new Error("Function not implemented.");
+    processPayment(): PurchaseStatus {
+        // eslint-disable-next-line sonarjs/no-duplicate-string
+        throw new Error('Function not implemented.')
     },
-    setPurchaseStatus: function (): void {
-        throw new Error("Function not implemented.");
+    setPurchaseStatus(): void {
+        throw new Error('Function not implemented.')
     },
-    insertMoney: function (): void {
-        throw new Error("Function not implemented.");
+    insertMoney(): void {
+        throw new Error('Function not implemented.')
     },
-    incrementProductAmount: function (): void {
-        throw new Error("Function not implemented.");
+    incrementProductAmount(): void {
+        throw new Error('Function not implemented.')
     },
-    decrementProductAmount: function (): void {
-        throw new Error("Function not implemented.");
+    decrementProductAmount(): void {
+        throw new Error('Function not implemented.')
     },
-    resetMachine: function (): void {
-        throw new Error("Function not implemented.");
+    resetMachine(): void {
+        throw new Error('Function not implemented.')
     },
-    selectProduct: function (): void {
-        throw new Error("Function not implemented.");
-    }
+    selectProduct(): void {
+        throw new Error('Function not implemented.')
+    },
 }
 
 export const VendorContext = createContext<IVendorContext>(initialData)
 
 
+const generateDenominations = (value: number, moneyInMachine: TInsertedMoney): TInsertedMoney => {
+    const count = moneyInMachine.get(value)
+    const updatedMap = new Map(moneyInMachine)
+
+    if (count === undefined) {
+        updatedMap.set(value, 1)
+    } else {
+        updatedMap.set(value, count + 1)
+    }
+
+    return updatedMap
+}
+
+
 export const MachineState = ({children}: {
     children: React.ReactNode
 }) => {
-    const [state, setState] = useState(initialData);
     const {products, loading: productsLoading, decrementItem} = useProducts()
-    const [calculator] = useState<ChangeCalculator>(new ChangeCalculator(
-        Currency().multipliedAndSortedValues
-            .map(item => ({value: item, count: 20}))))
+
+    const [state, setState] = useState(initialData)
+    const {purchaseStatus, currentProduct, productAmount, insertedMoney, due, change, isPaymentFailed} = state;
+
+    const [calculator] = useState<ChangeCalculator>(
+        new ChangeCalculator(
+            Currency().multipliedAndSortedValues.map(item => ({value: item, count: 20}))
+        )
+    )
 
     function setPurchaseStatus(status: PurchaseStatus) {
         setState(prev => ({...prev, purchaseStatus: status}))
     }
 
-    function selectProduct(product: IProduct) {
+    const selectProduct = useCallback((product: IProduct) => {
         setState(prev => {
-            const newProduct = state?.currentProduct?.id !== product.id;
-            return ({
+            const newProduct = currentProduct?.id !== product.id
+            return {
                 ...prev,
                 currentProduct: newProduct ? product : null,
                 purchaseStatus: newProduct ? PurchaseStatus.ChooseAmount : PurchaseStatus.ChooseProduct,
                 productAmount: initialData.productAmount,
-            });
+            }
         })
-    }
+    }, [currentProduct?.id])
 
-    function incrementProductAmount() {
-        if (state.productAmount === state.currentProduct?.amount)
+    const incrementProductAmount = useCallback(() => {
+        if (productAmount === currentProduct?.amount) {
             return
+        }
 
         setState(prev => ({
             ...prev,
-            productAmount: prev.productAmount++
+            productAmount: prev.productAmount++,
         }))
-    }
+    }, [currentProduct?.amount, productAmount])
 
-    function decrementProductAmount() {
-        if (state.productAmount === 1)
-            return
-
-        setState(prev => {
-            return ({
-                ...prev,
-                productAmount: prev.productAmount - 1
-            });
-        })
-    }
-
-    const generateDenominations = (value: number, insertedMoney: TInsertedMoney): TInsertedMoney => {
-        const count = insertedMoney.get(value);
-        const updatedMap = new Map(insertedMoney);
-
-        if (count) {
-            updatedMap.set(value, count + 1);
-        } else {
-            updatedMap.set(value, 1);
-        }
-
-        return updatedMap;
-    };
+    const decrementProductAmount = useCallback(() => {
+        setState(prev => ({
+            ...prev,
+            productAmount: prev.productAmount === 1 ? prev.productAmount : productAmount - 1,
+        }))
+    }, [productAmount])
 
 
-    function insertMoney(money: number) {
-        setState(prev => {
-            return ({
-                ...prev,
-                insertedMoney: {
-                    total: prev.insertedMoney.total + money,
+    const insertMoney = useCallback((money: number) => {
+        setState(prev => ({
+            ...prev,
+            insertedMoney: {
+                total: prev.insertedMoney.total + money,
+                denominations: generateDenominations(money, prev.insertedMoney.denominations),
+            },
+        }))
+    }, [])
 
-                    denominations: generateDenominations(money, prev.insertedMoney.denominations)
-                },
-            });
-        })
-    }
-
-    function processPayment(): PurchaseStatus {
-        if (state.due > 0) {
-            console.error(`Payment processing error: customer's due is positive ({state.due})`)
+    const processPayment = useCallback((): PurchaseStatus => {
+        if (due > 0) {
+            console.error(`Payment processing error: customer's due is positive ({due})`)
             return PurchaseStatus.ReturnMoney
         }
 
-        if (state.due !== 0) {
-            const requiredChange = Math.abs(state.due)
-            const change = calculator.getChange(requiredChange)
+        if (due !== 0) {
+            const requiredChange = Math.abs(due)
+            const changeToGive = calculator.getChange(requiredChange)
 
-            if (!change?.length) {
+            if (changeToGive === null || changeToGive.length === 0) {
                 setState(prev => ({...prev, isPaymentFailed: true}))
                 return PurchaseStatus.ReturnMoney
             }
-
-            setState(prev => ({...prev, change: change}))
+            
+            setState(prev => ({...prev, change: changeToGive}))
         }
 
         // handle successful purchase
-        calculator.loadReceivedMoney(state.insertedMoney.denominations)
+        calculator.loadReceivedMoney(insertedMoney.denominations)
 
-        if (state.currentProduct) {
-            decrementItem(state.currentProduct, state.productAmount)
+        if (currentProduct) {
+            decrementItem(currentProduct, productAmount)
         }
 
         setState(prev => ({
@@ -174,71 +176,53 @@ export const MachineState = ({children}: {
             insertedMoney: {total: 0, denominations: new Map()},
             isPaymentFailed: false,
             due: 0,
-
         }))
 
-        return PurchaseStatus.Success;
-    }
+        return PurchaseStatus.Success
+    }, [calculator, currentProduct, decrementItem, due, insertedMoney.denominations, productAmount])
 
-    function resetMachine() {
-        if (state.insertedMoney.denominations.size > 0)
-            setState((prev => ({...prev, purchaseStatus: PurchaseStatus.ReturnMoney})))
-        else
-            setState((prev => ({...prev, purchaseStatus: PurchaseStatus.ChooseProduct})))
-    }
-
-    useEffect(() => {
-        // setState(prev => {
-        //     const productPrice = prev.currentProduct?.price;
-        //     const totalInsertedMoney = state.insertedMoney.total;
-        //     const productAmount = prev.productAmount;
-        //
-        //     if (!productPrice) return {...prev, due: null}
-        //
-        //     return ({
-        //         ...prev,
-        //         due: (productPrice * productAmount) - totalInsertedMoney
-        //     });
-        // })
-        const productPrice = state.currentProduct?.price ?? 0;
-        const totalInsertedMoney = state.insertedMoney.total;
-        const productAmount = state.productAmount;
-
-        setState({...state, due: (productPrice * productAmount) - totalInsertedMoney});
-        
-    }, [state.insertedMoney.total, state.productAmount, state.currentProduct]);
-
-
-    useEffect(() => {
-        switch (state.purchaseStatus) {
-            case PurchaseStatus.ChooseProduct:
-                setState(initialData)
-                break;
+    const resetMachine = useCallback(() => {
+        if (insertedMoney.denominations.size > 0) {
+            setState(prev => ({...prev, purchaseStatus: PurchaseStatus.ReturnMoney}))
+        } else {
+            setState(prev => ({...prev, purchaseStatus: PurchaseStatus.ChooseProduct}))
         }
+    }, [insertedMoney.denominations.size])
 
-    }, [state.purchaseStatus]);
+    useEffect(() => {
+        const productPrice = currentProduct?.price ?? 0
+        const totalInsertedMoney = insertedMoney.total
 
+        setState(prev => ({...prev, due: productPrice * productAmount - totalInsertedMoney}))
+    }, [insertedMoney.total, productAmount, currentProduct])
+
+    useEffect(() => {
+        if (purchaseStatus === PurchaseStatus.ChooseProduct) {
+            setState(initialData)
+        }
+    }, [purchaseStatus])
 
     return (
-        <VendorContext.Provider value={{
-            purchaseStatus: state.purchaseStatus,
-            currentProduct: state.currentProduct,
-            productAmount: state.productAmount,
-            insertedMoney: state.insertedMoney,
-            due: state.due,
-            change: state.change,
-            isPaymentFailed: state.isPaymentFailed,
+        <VendorContext.Provider
+            value={useMemo(() => ({
+                purchaseStatus,
+                currentProduct,
+                productAmount,
+                insertedMoney,
+                due,
+                change,
+                isPaymentFailed,
 
-            processPayment,
-            setPurchaseStatus,
-            selectProduct,
-            resetMachine,
-            incrementProductAmount,
-            decrementProductAmount,
-            insertMoney,
-            products,
-            productsLoading,
-        }}
+                processPayment,
+                setPurchaseStatus,
+                selectProduct,
+                resetMachine,
+                incrementProductAmount,
+                decrementProductAmount,
+                insertMoney,
+                products,
+                productsLoading,
+            }), [decrementProductAmount, incrementProductAmount, insertMoney, processPayment, products, productsLoading, resetMachine, selectProduct, change, currentProduct, due, insertedMoney, isPaymentFailed, productAmount, purchaseStatus])}
         >
             {children}
         </VendorContext.Provider>

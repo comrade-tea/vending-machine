@@ -1,7 +1,7 @@
 .button {
-   @apply w-1/2 py-2 text-center ml-auto text-white transition-colors;
+  @apply w-1/2 py-2 text-center ml-auto text-white transition-colors;
 
-   &:disabled {
-      @apply bg-gray-400 cursor-not-allowed
-   }
-} 
+  &:disabled {
+    @apply bg-gray-400 cursor-not-allowed;
+  }
+}
