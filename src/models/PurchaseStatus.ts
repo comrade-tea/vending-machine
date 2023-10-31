@@ -1,8 +1,9 @@
 export enum PurchaseStatus {
-  ChooseProduct,
-  ChooseAmount,
-  InsertMoney,
-  ProcessPayment,
-  Success,
-  ReturnMoney,
+   ChooseProduct,
+   ChooseAmount,
+   InsertMoney,
+   ProcessPayment,
+   Success,
+   ReturnMoney,
+   notImplemented
 }

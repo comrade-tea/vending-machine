@@ -30,9 +30,10 @@ export const ProductItem: FC<IProductItem> = ({product, handleSelect, selected, 
 
    const stateChoosingAmount = PurchaseStatus.ChooseAmount === purchaseStatus
    const paymentInProgress = PurchaseStatus.InsertMoney === purchaseStatus
-   const purchaseCompleted = PurchaseStatus.ProcessPayment === purchaseStatus
-   const stepReturnMoney = PurchaseStatus.ReturnMoney === purchaseStatus
-   const isDisabled = paymentInProgress || purchaseCompleted || stepReturnMoney || product.amount === 0
+   const processPayment = PurchaseStatus.ProcessPayment === purchaseStatus
+   const returnMoney = PurchaseStatus.ReturnMoney === purchaseStatus
+   const paymentSuccess = PurchaseStatus.Success === purchaseStatus
+   const isDisabled = paymentInProgress || processPayment || returnMoney || paymentSuccess || product.amount === 0
 
    if (selected) {
       classes.push("bg-blue-50 border-blue-400")

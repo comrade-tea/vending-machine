@@ -7,7 +7,7 @@ import {VendorContext} from '@/context/VendorContext.tsx'
 import {PurchaseStatus} from '@/models/PurchaseStatus.ts'
 
 export const Success = () => {
-    const {setPurchaseStatus, currentProduct, change, productAmount} = useContext(VendorContext)
+    const {setPurchaseStatus, change} = useContext(VendorContext)
 
     const cancelHandler = useCallback(() => {
         setPurchaseStatus(PurchaseStatus.ChooseProduct)
@@ -20,7 +20,7 @@ export const Success = () => {
             {change.length > 0 && <div className="mb-2">Here&apos;s your change</div>}
             <ChangeTable
                 moneyToReturn={change}
-                totalChange={(currentProduct?.price ?? 0) * productAmount}
+                totalChange={change.reduce((acc, current) => acc + current.value * current.count, 0)}
             />
 
             <div className="flex mt-10">

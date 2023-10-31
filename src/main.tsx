@@ -4,15 +4,15 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 import {App} from './App.tsx'
-import {MachineState} from './context/VendorContext.tsx'
+import {VendorState} from './context/VendorContext.tsx'
 
 const element = document.querySelector("#root");
 if (element) {
     ReactDOM.createRoot(element).render(
         <React.StrictMode>
-            <MachineState>
+            <VendorState>
                 <App/>
-            </MachineState>
+            </VendorState>
         </React.StrictMode>
     )
 }
