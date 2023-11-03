@@ -8,13 +8,17 @@ export const Footer = () => (
             <FaGithub size={24}/>
             <span className="ml-4">sources</span>
          </a>
-         <a className="flex items-center transition-colors hover:text-red-500" href="https://comrade-tea.github.io/"
+         <a className="flex items-center transition-colors hover:text-red-500"
+            href="https://comrade-tea-projects.netlify.app"
             target="_blank" rel="noreferrer">
             <FaList size={22}/>
             <span className="ml-4">other projects</span>
          </a>
 
-         <div className="xs:ml-auto">made by comrade-tea</div>
+         <div className="xs:ml-auto">made by <a className="transition-colors hover:text-red-500"
+                                                href="https://comrade-tea-projects.netlify.app"
+                                                target="_blank" rel="noreferrer">comrade-tea</a>
+         </div>
       </div>
    </footer>
 )
