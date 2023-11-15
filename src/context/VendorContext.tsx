@@ -88,7 +88,7 @@ export const VendorState = ({children}: {
 
       setState(prev => ({
          ...prev,
-         productAmount: prev.productAmount++,
+         productAmount: prev.productAmount + 1,
       }))
    }, [currentProduct?.amount, productAmount])
 

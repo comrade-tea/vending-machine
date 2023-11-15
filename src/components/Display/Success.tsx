@@ -15,7 +15,7 @@ export const Success = () => {
 
     return (
         <>
-            <Header text={<>Thanks! <br/> Enjoy your shopping! :)</>}/>
+            <Header text={<>Thanks! <br/> Enjoy your purchase! :)</>}/>
 
             {change.length > 0 && <div className="mb-2">Here&apos;s your change</div>}
             <ChangeTable
